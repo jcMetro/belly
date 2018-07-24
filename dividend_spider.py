@@ -6,10 +6,8 @@ class BlogSpider(scrapy.Spider):
     name = 'stocks'
 
     def parse(self, response):
+        request_stock_code = self.extract_request_stock_code(response)
         rows = response.xpath("//div[contains(@class, 'title') and text()='Dividend History']/ancestor::div[2]//table//tr")
-        request_url = response.request.url
-        pattern = re.compile(r"symbol=([0-9]*)")
-        request_stock_code = pattern.search(request_url)[1]
         for row in rows[1:]: 
             yield {
                 'stock' : request_stock_code,
@@ -25,3 +23,7 @@ class BlogSpider(scrapy.Spider):
             url = f"http://www.aastocks.com/en/stocks/analysis/company-fundamental/dividend-history?symbol={stockCode}&filter=D"
             yield Request(url, self.parse)
 
+    def extract_request_stock_code(self, response): 
+        request_url = response.request.url
+        pattern = re.compile(r"symbol=([0-9]*)")
+        return pattern.search(request_url)[1]
