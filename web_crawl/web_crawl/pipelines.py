@@ -6,6 +6,10 @@
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
 import pymongo
+import re
+from decimal import *
+from bson.decimal128 import Decimal128
+
 
 class DividendsMongoPipeline(object):
     collection_name = 'dividends'
@@ -28,5 +32,16 @@ class DividendsMongoPipeline(object):
 
     def process_item(self, item, spider):
         for record in item['records']:
+            hkd_pattern = re.compile(r'.*HKD ([0-9\.]+).*')
+            rmb_pattern = re.compile(r'.*RMB ([0-9\.]+).*')
+            hkd_match = hkd_pattern.match(record['dividend'])
+            rmb_match = rmb_pattern.match(record['dividend'])
+            if hkd_match:
+                record['dividend'] = str(Decimal(hkd_match.group(1)))
+            elif rmb_match:
+                record['dividend'] = str(Decimal(rmb_match.group(1)) * Decimal('1.14'))
+            else:
+                record['dividend'] = str(Decimal(0))
+
             self.db[self.collection_name].insert_one(dict(record))
         return item
