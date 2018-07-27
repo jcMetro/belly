@@ -4,8 +4,15 @@ import re
 
 from web_crawl.items import DividendRecord
 
+
 class DividendSpider(scrapy.Spider):
     name = 'dividend'
+
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'web_crawl.pipelines.DividendsMongoPipeline': 400
+        }
+    }
 
     def parse(self, response):
         request_stock_code = self.extract_request_stock_code(response)

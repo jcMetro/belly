@@ -8,7 +8,6 @@
 import pymongo
 import re
 from decimal import *
-from bson.decimal128 import Decimal128
 
 
 class DividendsMongoPipeline(object):
@@ -43,5 +42,31 @@ class DividendsMongoPipeline(object):
             else:
                 record['dividend'] = str(Decimal(0))
 
+            self.db[self.collection_name].insert_one(dict(record))
+
+        return item
+
+
+class RoeMongoPipeline(object):
+    collection_name = 'roe'
+
+    def __init__(self, mongo_uri):
+        self.mongo_uri = mongo_uri
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(
+            mongo_uri=crawler.settings.get('MONGO_URI')
+        )
+
+    def open_spider(self, spider):
+        self.client = pymongo.MongoClient(self.mongo_uri)
+        self.db = self.client['belly']
+
+    def close_spider(self, spider):
+        self.client.close()
+
+    def process_item(self, item, spider):
+        for record in item['records']:
             self.db[self.collection_name].insert_one(dict(record))
         return item

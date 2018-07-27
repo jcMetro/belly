@@ -12,3 +12,9 @@ class DividendRecord(scrapy.Item):
     stock = scrapy.Field()
     period = scrapy.Field()
     dividend = scrapy.Field()
+
+
+class RoeRecord(scrapy.Item):
+    stock = scrapy.Field()
+    period = scrapy.Field()
+    roe = scrapy.Field()
