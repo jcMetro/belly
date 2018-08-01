@@ -8,6 +8,7 @@
 import pymongo
 import re
 from decimal import *
+from bson.decimal128 import *
 
 
 class DividendsMongoPipeline(object):
@@ -25,6 +26,7 @@ class DividendsMongoPipeline(object):
     def open_spider(self, spider):
         self.client = pymongo.MongoClient(self.mongo_uri)
         self.db = self.client['belly']
+        self.db[self.collection_name].drop()
 
     def close_spider(self, spider):
         self.client.close()
@@ -36,11 +38,15 @@ class DividendsMongoPipeline(object):
             hkd_match = hkd_pattern.match(record['dividend'])
             rmb_match = rmb_pattern.match(record['dividend'])
             if hkd_match:
-                record['dividend'] = str(Decimal(hkd_match.group(1)))
+                record['dividend'] = Decimal128(Decimal(hkd_match.group(1)))
             elif rmb_match:
-                record['dividend'] = str(Decimal(rmb_match.group(1)) * Decimal('1.14'))
+                record['dividend'] = Decimal128(Decimal(rmb_match.group(1)) * Decimal('1.14'))
             else:
-                record['dividend'] = str(Decimal(0))
+                record['dividend'] = Decimal128(Decimal(0))
+
+            year_pattern = re.compile(r'([0-9]{4})\/.*')
+            year_match = year_pattern.match(record['period'])
+            record['period'] = year_match.group(1)
 
             self.db[self.collection_name].insert_one(dict(record))
 
