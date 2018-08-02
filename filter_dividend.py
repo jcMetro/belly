@@ -9,11 +9,18 @@ increase_div_stocks = []
 
 for stock in stocks:
     periods = db.dividends.find({"stock": stock}).distinct("period")
-    if len(periods) < 5:
+
+    recent_periods = sorted(periods, reverse=True)
+
+    if recent_periods[0] == '2018':
+        recent_periods = recent_periods[1:]
+
+    if len(recent_periods) < 5:
         # print(f'stock {stock} does not have 5 years div payout')
         continue
 
-    recent_periods = sorted(periods, reverse=True)[:5]
+    recent_periods = recent_periods[:5]
+
     non_continuous_pay_out = any((int(recent_periods[i]) - int(recent_periods[i + 1]) != 1) for i in range(4))
 
     if non_continuous_pay_out:
