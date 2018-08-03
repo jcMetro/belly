@@ -23,14 +23,27 @@ class EarningSpider(scrapy.Spider):
         year_row = response.xpath("//td[contains(text(),'Closing Date')]/ancestor::tr")
         years = [year_row.xpath('td[' + str(i) + ']/text()').extract_first() for i in range(2, 7)]
 
-        roe_records = [
+        dividend_row = response.xpath("//td[contains(text(),'Dividend Per Share')]/ancestor::tr")
+        dividend = [dividend_row.xpath('td[' + str(i) + ']/text()').extract_first() for i in range(2, 7)]
+
+        dividend_payout_row = response.xpath("//td[contains(text(),'Dividend Payout')]/ancestor::tr")
+        dividend_payout = [dividend_payout_row.xpath('td[' + str(i) + ']/text()').extract_first() for i in range(2, 7)]
+
+        eps_growth_row = response.xpath("//td[contains(text(),'EPS Growth')]/ancestor::tr")
+        eps_growth = [eps_growth_row.xpath('td[' + str(i) + ']/text()').extract_first() for i in range(2, 7)]
+
+        earning_records = [
             EarningRecord(
                 stock=request_stock_code,
                 period=item[0],
-                earning=item[1]) for item in zip(years, earnings)]
+                earning=item[1],
+                dividend=item[2],
+                dividend_payout=item[3],
+                eps_growth=item[4]
+            ) for item in zip(years, earnings, dividend, dividend_payout, eps_growth)]
 
         yield {
-            'records': roe_records
+            'records': earning_records
         }
 
     def start_requests(self):

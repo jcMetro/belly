@@ -24,3 +24,6 @@ class EarningRecord(scrapy.Item):
     stock = scrapy.Field()
     period = scrapy.Field()
     earning = scrapy.Field()
+    dividend = scrapy.Field()
+    dividend_payout = scrapy.Field()
+    eps_growth = scrapy.Field()
