@@ -18,3 +18,9 @@ class RoeRecord(scrapy.Item):
     stock = scrapy.Field()
     period = scrapy.Field()
     roe = scrapy.Field()
+
+
+class EarningRecord(scrapy.Item):
+    stock = scrapy.Field()
+    period = scrapy.Field()
+    earning = scrapy.Field()
