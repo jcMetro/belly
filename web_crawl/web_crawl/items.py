@@ -17,6 +17,7 @@ class DividendRecord(scrapy.Item):
 class RoeRecord(scrapy.Item):
     stock = scrapy.Field()
     period = scrapy.Field()
+    debt_to_equity = scrapy.Field()
     roe = scrapy.Field()
 
 

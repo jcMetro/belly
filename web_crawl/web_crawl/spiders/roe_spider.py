@@ -23,11 +23,16 @@ class RoeSpider(scrapy.Spider):
         year_row = response.xpath("//td[contains(text(),'Closing Date')]/ancestor::tr")
         years = [year_row.xpath('td[' + str(i) + ']/text()').extract_first() for i in range(2, 7)]
 
+        debt_row = response.xpath("//td[contains(text(),'Total Debt/Equity')]/ancestor::tr")
+        debts = [debt_row.xpath('td[' + str(i) + ']/text()').extract_first() for i in range(2, 7)]
+
         roe_records = [
             RoeRecord(
                 stock=request_stock_code,
                 period=item[0],
-                roe=item[1]) for item in zip(years, roes)]
+                roe=item[1],
+                debt_to_equity=item[2],
+            ) for item in zip(years, roes, debts)]
 
         yield {
             'records': roe_records

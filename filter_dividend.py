@@ -46,15 +46,34 @@ def filter_increase_div_stock(the_stocks):
 def filter_valid_stock(the_stocks):
     results = []
     for stock in the_stocks:
+        print(stock)
         e_records = list(db.earning.find({"stock": stock}).sort("period", -1))
         latest_dividend_payout = e_records[0]['dividend_payout']
         if not latest_dividend_payout:
             continue
-        if Decimal(latest_dividend_payout) >= 100:
+        print(latest_dividend_payout)
+        try:
+            if Decimal(latest_dividend_payout) >= 100:
+                continue
+        except InvalidOperation:
             continue
 
+        d_records = list(db.roe.find({"stock": stock}).sort("period", -1))
+        latest_debt_ratio = d_records[0]['debt_to_equity']
+        if not latest_debt_ratio:
+            continue
+        if Decimal(latest_debt_ratio) >= 150:
+            continue
         results.append(stock)
+
     return results
+
+
+def get_roe(str_roe):
+    if str_roe == '-':
+        return Decimal('0')
+    else:
+        return Decimal(str_roe)
 
 
 if __name__ == "__main__":
@@ -67,16 +86,17 @@ if __name__ == "__main__":
 
     with open('final_output.csv', 'w') as csv_file:
         writer = csv.writer(csv_file, delimiter=',')
-        for stock_item in valid_stocks:
-            db_item = db.stock.find({"code": stock_item}).next()
-            latest_dividend = db.earning.find({"stock": stock_item}).sort("period", -1).next()['dividend']
-            dividends = [Decimal(str(item['dividend']))
-                         for item in list(db.earning.find({"stock": stock_item}).sort("period", -1))]
-            dividends = dividends[:5]
-            growths = [(1 + (dividends[i] - dividends[i + 1]) / dividends[i + 1]) for i in range(4)]
-            avg_growth = (np.array(growths).prod() ** (Decimal('1.0') / len(growths))) - 1
+        for stock_code in valid_stocks:
+            db_stock_item = db.stock.find({"code": stock_code}).next()
+            latest_dividend = db.earning.find({"stock": stock_code}).sort("period", -1).next()['dividend']
+            latest_payout_ratio_in_pct = db.earning.find({"stock": stock_code}).sort("period", -1).next()[
+                'dividend_payout']
 
-            if avg_growth < 0:
+            db_roe_items = list(db.roe.find({"stock": stock_code}).sort("period", -1))[:5]
+            roes = [get_roe(item['roe']) for item in db_roe_items]
+            avg_roe = sum(roes) / len(roes)
+            sgr = avg_roe * (Decimal('1') - (Decimal(latest_payout_ratio_in_pct) / Decimal('100.0')))
+            if sgr < 0:
                 continue
 
-            writer.writerow([stock_item, str(db_item['last_price']), str(latest_dividend), avg_growth])
+            writer.writerow([stock_code, str(db_stock_item['last_price']), str(latest_dividend), str(sgr)])

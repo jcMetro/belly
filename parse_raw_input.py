@@ -19,8 +19,9 @@ class StockItem:
 def create_stock_item(row):
     code = row[0]
     name = row[1]
-
+    print(row)
     last_price_match = re.compile(r'HK\$([0-9\.]*)').match(row[2])
+    print(bool(last_price_match))
     last_price = Decimal128(last_price_match.group(1))
 
     div_yield_match = re.compile(r'([0-9\.]*)%').match(row[6])
